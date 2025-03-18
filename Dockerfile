@@ -1,14 +1,13 @@
-# Usando uma imagem oficial do Java 17 (ou outra versão que você usa)
-FROM eclipse-temurin:17-jdk
+#
+# Build stage
+#
+FROM maven:3.9-eclipse-temurin-23-alpine AS build
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Define o diretório de trabalho dentro do container
-WORKDIR /app
-
-# Copia o JAR gerado para dentro do container
-COPY target/demo-0.0.1-SNAPSHOT.jar app.jar
-
-# Expõe a porta 8080 (ou outra usada pelo Spring Boot)
-EXPOSE 8080
-
-# Comando para rodar a aplicação
-CMD ["java", "-jar", "app.jar"]
+#
+# Package stage
+#
+FROM eclipse-temurin:23-jdk-alpine
+COPY --from=build /target/*.jar app.jar
+ENTRYPOINT ["java","-jar","app.jar"]
